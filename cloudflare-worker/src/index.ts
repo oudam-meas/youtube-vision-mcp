@@ -119,13 +119,34 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		// CORS preflight must succeed without auth: a browser-based MCP client
+		// sending a custom Authorization header cross-origin sends this OPTIONS
+		// request first, and if it doesn't get a clean 2xx + matching
+		// Access-Control-Allow-* headers, the browser blocks the real request
+		// before it's ever sent — surfacing as "can't reach the server" even
+		// though the Worker is up.
+		if (request.method === "OPTIONS") {
+			return new Response(null, {
+				status: 204,
+				headers: {
+					"Access-Control-Allow-Origin": "*",
+					"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+					"Access-Control-Allow-Headers": "Content-Type, Authorization, mcp-session-id, mcp-protocol-version",
+					"Access-Control-Max-Age": "86400",
+				},
+			});
+		}
+
 		// Header-based auth: Claude's Custom Connector UI supports request
 		// headers sent as this connector's credentials, stored securely and
 		// never shown again — a better fit than a token in the URL, since
 		// headers don't end up in browser history or referrer logs.
 		const authHeader = request.headers.get("Authorization") ?? "";
 		if (!timingSafeEqual(authHeader, `Bearer ${env.MCP_AUTH_TOKEN}`)) {
-			return new Response("Unauthorized", { status: 401 });
+			return new Response("Unauthorized", {
+				status: 401,
+				headers: { "Access-Control-Allow-Origin": "*" },
+			});
 		}
 
 		const url = new URL(request.url);
