@@ -119,6 +119,19 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
+		const url = new URL(request.url);
+		// Log request shape only — never the Authorization header's value.
+		console.log(
+			JSON.stringify({
+				method: request.method,
+				path: url.pathname,
+				origin: request.headers.get("Origin"),
+				userAgent: request.headers.get("User-Agent"),
+				accept: request.headers.get("Accept"),
+				hasAuthHeader: request.headers.has("Authorization"),
+			})
+		);
+
 		// CORS preflight must succeed without auth: a browser-based MCP client
 		// sending a custom Authorization header cross-origin sends this OPTIONS
 		// request first, and if it doesn't get a clean 2xx + matching
@@ -143,13 +156,12 @@ export default {
 		// headers don't end up in browser history or referrer logs.
 		const authHeader = request.headers.get("Authorization") ?? "";
 		if (!timingSafeEqual(authHeader, `Bearer ${env.MCP_AUTH_TOKEN}`)) {
+			console.log("auth failed");
 			return new Response("Unauthorized", {
 				status: 401,
 				headers: { "Access-Control-Allow-Origin": "*" },
 			});
 		}
-
-		const url = new URL(request.url);
 
 		if (url.pathname === "/sse" || url.pathname === "/sse/message") {
 			return YoutubeVisionMCP.serveSSE("/sse").fetch(request, env, ctx);
@@ -159,6 +171,7 @@ export default {
 			return YoutubeVisionMCP.serve("/mcp").fetch(request, env, ctx);
 		}
 
+		console.log("no route matched");
 		return new Response("Not found", { status: 404 });
 	},
 };
