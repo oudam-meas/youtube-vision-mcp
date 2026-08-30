@@ -62,6 +62,25 @@ This starts a `streamable-http` MCP server on `0.0.0.0:8000` (endpoint
 
 ---
 
+## Working from a second machine
+
+`~/.config/youtube-vision-mcp/.env` is deliberately **outside** this repo
+and gitignored — cloning or pulling on a new machine (another laptop, a
+fresh phone) gets you all the code, but never that file. Before running
+`server.py` or deploying `cloudflare-worker/` from a new machine, recreate
+it there from `.env.example` (`GEMINI_API_KEY`, and `MCP_AUTH_TOKEN` /
+`CLOUDFLARE_WORKERS_SUBDOMAIN` if you're touching the Worker) — otherwise
+it'll fail with a missing-key error rather than something obviously
+config-related.
+
+This also means Cloudflare Worker secrets (`GEMINI_API_KEY`,
+`MCP_AUTH_TOKEN`) already set from one machine carry over automatically —
+they live on Cloudflare's side, not locally — so a second machine only
+needs the `.env` file if it's going to *run* `wrangler secret put` or
+`server.py` itself, not just edit code and push.
+
+---
+
 ## Deploying
 
 Run this somewhere reachable over HTTPS — a VPS, Fly.io, Render, a

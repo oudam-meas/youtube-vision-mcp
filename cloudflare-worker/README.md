@@ -12,6 +12,10 @@ remote-MCP pattern.
 
 ## A note if you're on Termux/Android
 
+**This section only applies on Termux/Android.** On a real Linux, macOS,
+or WSL machine, `npm install` here just works — skip straight to Deploy
+below.
+
 `wrangler` depends on `workerd`, whose install script rejects Node's
 `process.platform === "android"` (Termux's Node reports that instead of
 `linux`). Everything here was built and dry-run bundled inside a
