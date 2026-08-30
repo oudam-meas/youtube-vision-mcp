@@ -56,13 +56,12 @@ locally or pointed at whatever HTTPS-reachable host you choose.
 
 ## Next steps
 
-- **Free managed hosting:** Cloudflare offers a free remote-MCP hosting
-  path on Workers (their `agents`/MCP template — free tier, a stable
-  `*.workers.dev` URL, no tunnel or static-domain juggling). The catch:
-  it's a JS/TS (or experimental Python Workers) runtime, so getting this
-  server there means either porting `server.py`'s three tools to
-  TypeScript against the `google-genai` REST API, or trying the Python
-  Workers beta — not a drop-in deploy of the current file.
+- **Free managed hosting — in progress:** [`cloudflare-worker/`](cloudflare-worker/)
+  has a TypeScript port of all three tools for Cloudflare's free
+  remote-MCP Workers hosting (a stable `*.workers.dev` URL, no tunnel or
+  static-domain juggling). It type-checks and bundles cleanly; deploying
+  it just needs a Cloudflare login/API token and a Gemini key set as a
+  secret — see that directory's README.
 - Alternatives worth a look if a Python-native host is preferred:
   Fly.io (small always-on VMs, no cold start), Oracle Cloud's always-free
   ARM tier, or Render (free but spins down after 15 min idle, which is
