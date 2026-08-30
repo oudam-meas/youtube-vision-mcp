@@ -10,6 +10,33 @@ client can call.
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Claude["Claude\n(MCP client)"]
+    YT[("YouTube video\n(audio + frames)")]
+    Gemini["Gemini API\n(generateContent)"]
+
+    subgraph MCP["MCP server — youtube-vision-gap-filler"]
+        direction TB
+        Tools["summarize_video\nextract_diagrams\nask_about_timestamp"]
+        subgraph Hosting["pick one deployment"]
+            direction LR
+            Py["server.py\n(self-hosted: VPS/Fly.io/Termux+tunnel)"]
+            CF["cloudflare-worker/\n(Cloudflare Workers, free tier)"]
+        end
+        Tools --> Hosting
+    end
+
+    Claude <-->|HTTPS\nstreamable-http /mcp| MCP
+    Hosting -->|REST call w/ youtube_url + prompt| Gemini
+    Gemini -->|fetches & watches| YT
+    Gemini -->|text response| Hosting
+```
+
+---
+
 ## Setup
 
 ### 1. Install dependencies
