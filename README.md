@@ -48,6 +48,28 @@ variables on the host, or via `~/.config/youtube-vision-mcp/.env` — see
 
 ---
 
+## Current state
+
+A single-file Python MCP server (`server.py`) exposing three tools over
+`streamable-http`. No hosting is wired up yet — it's meant to be run
+locally or pointed at whatever HTTPS-reachable host you choose.
+
+## Next steps
+
+- **Free managed hosting:** Cloudflare offers a free remote-MCP hosting
+  path on Workers (their `agents`/MCP template — free tier, a stable
+  `*.workers.dev` URL, no tunnel or static-domain juggling). The catch:
+  it's a JS/TS (or experimental Python Workers) runtime, so getting this
+  server there means either porting `server.py`'s three tools to
+  TypeScript against the `google-genai` REST API, or trying the Python
+  Workers beta — not a drop-in deploy of the current file.
+- Alternatives worth a look if a Python-native host is preferred:
+  Fly.io (small always-on VMs, no cold start), Oracle Cloud's always-free
+  ARM tier, or Render (free but spins down after 15 min idle, which is
+  a poor fit for an MCP server clients expect to be always reachable).
+
+---
+
 ## MCP tools exposed
 
 | Tool | What it does |
