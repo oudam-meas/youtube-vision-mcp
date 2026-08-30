@@ -77,18 +77,16 @@ variables on the host, or via `~/.config/youtube-vision-mcp/.env` — see
 
 ## Current state
 
-A single-file Python MCP server (`server.py`) exposing three tools over
-`streamable-http`. No hosting is wired up yet — it's meant to be run
-locally or pointed at whatever HTTPS-reachable host you choose.
+Two interchangeable server implementations exposing the same three tools:
+
+- `server.py` — a single-file Python MCP server over `streamable-http`,
+  meant to be run locally or on whatever HTTPS-reachable host you choose.
+- [`cloudflare-worker/`](cloudflare-worker/) — a TypeScript port deployed
+  and live on Cloudflare's free Workers tier at a stable `*.workers.dev`
+  URL. No tunnel, no restart-to-get-a-new-URL problem.
 
 ## Next steps
 
-- **Free managed hosting — in progress:** [`cloudflare-worker/`](cloudflare-worker/)
-  has a TypeScript port of all three tools for Cloudflare's free
-  remote-MCP Workers hosting (a stable `*.workers.dev` URL, no tunnel or
-  static-domain juggling). It type-checks and bundles cleanly; deploying
-  it just needs a Cloudflare login/API token and a Gemini key set as a
-  secret — see that directory's README.
 - Alternatives worth a look if a Python-native host is preferred:
   Fly.io (small always-on VMs, no cold start), Oracle Cloud's always-free
   ARM tier, or Render (free but spins down after 15 min idle, which is
