@@ -23,8 +23,6 @@ transcript-only tools miss.
 ~/programs/youtube-vision-mcp/
 ├── server.py          # MCP server — wraps Gemini API video tools
 ├── requirements.txt   # Python dependencies
-├── host-setup.sh      # One-time host/environment setup (run before pip install)
-├── setup.sh           # Full fresh-phone setup script
 ├── start.sh           # Start server + tunnel + wake lock
 ├── status.sh          # Check running status + print tunnel URL
 ├── stop.sh            # Stop all processes + release wake lock
@@ -83,32 +81,17 @@ URL every time the server restarts — fragile and annoying.
 
 ---
 
-### 2. Git repository (priority: high)
-Put the project under version control so changes are tracked and the
-project is portable to any new phone without manual file transfers.
-
-**Steps:**
-- `cd ~/programs/youtube-vision-mcp && git init`
-- Create `.gitignore` — critical, must include:
-  ```
-  .env
-  *.log
-  *.pid
-  __pycache__/
-  *.pyc
-  .cloudflared/
-  ```
-- `git add . && git commit -m "initial commit"`
-- Create a private repo on GitHub/GitLab/Codeberg
-- Push: `git remote add origin <url> && git push -u origin main`
-- On a new phone, fresh setup becomes just:
-  ```bash
-  bash host-setup.sh
-  git clone <your-repo> ~/programs/youtube-vision-mcp
-  pip install -r requirements.txt
-  # restore .env manually (never committed)
-  bash start.sh
-  ```
+### 2. Git repository — done
+The project is now under version control and pushed to a public GitHub
+repo. On a new phone, fresh setup is now:
+```bash
+pkg install -y python-pydantic-core python-cryptography
+git clone <this-repo-url> ~/programs/youtube-vision-mcp
+cd ~/programs/youtube-vision-mcp
+pip install -r requirements.txt
+# restore .env manually (never committed)
+bash start.sh
+```
 
 ---
 
@@ -156,11 +139,11 @@ bash ~/programs/youtube-vision-mcp/status.sh
 termux-setup-storage
 pkg update -y && pkg upgrade -y
 
-# 2. Run host setup
-bash host-setup.sh
+# 2. Install native build prerequisites
+pkg install -y python-pydantic-core python-cryptography
 
-# 3. Clone repo (once it's on git)
-git clone <your-repo> ~/programs/youtube-vision-mcp
+# 3. Clone repo
+git clone <this-repo-url> ~/programs/youtube-vision-mcp
 cd ~/programs/youtube-vision-mcp
 
 # 4. Install dependencies

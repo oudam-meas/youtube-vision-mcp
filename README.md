@@ -19,19 +19,14 @@ https://f-droid.org
 termux-setup-storage
 ```
 
-### 3. Run host setup (fixes Rust/native build errors)
+### 3. Install native build prerequisites (avoids Rust/native build errors)
 ```bash
-bash host-setup.sh
+pkg install -y python-pydantic-core python-cryptography
 ```
 
-### 4. Copy project files into place
+### 4. Clone the repo
 ```bash
-cp ~/storage/downloads/server.py \
-   ~/storage/downloads/requirements.txt \
-   ~/storage/downloads/start.sh \
-   ~/storage/downloads/status.sh \
-   ~/storage/downloads/stop.sh \
-   ~/programs/youtube-vision-mcp/
+git clone <this-repo-url> ~/programs/youtube-vision-mcp
 ```
 
 ### 5. Make scripts executable
@@ -171,7 +166,6 @@ bash ~/programs/youtube-vision-mcp/start.sh
 |------|---------|
 | server.py | MCP server — wraps Gemini API video tools |
 | requirements.txt | Python dependencies |
-| host-setup.sh | One-time host/environment setup |
 | start.sh | Start server + tunnel + wake lock |
 | status.sh | Check running status + print tunnel URL |
 | stop.sh | Stop all processes + release wake lock |
