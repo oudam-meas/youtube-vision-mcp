@@ -108,25 +108,34 @@ export class YoutubeVisionMCP extends McpAgent<Env> {
 	}
 }
 
+// Constant-time compare so a mismatched token can't be brute-forced via
+// response-time differences on the length/prefix.
+function timingSafeEqual(a: string, b: string): boolean {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	return diff === 0;
+}
+
 export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		const url = new URL(request.url);
-
-		// Secret-path auth: the token lives in the URL itself (set via
-		// `wrangler secret put MCP_AUTH_TOKEN`), so any client that just calls
-		// a fixed connector URL — no header/OAuth support needed — is already
-		// authenticated by knowing the full path. Anything else 404s, same as
-		// an unknown route, so a wrong/missing token isn't distinguishable
-		// from a nonexistent path.
-		const mcpPath = `/mcp/${env.MCP_AUTH_TOKEN}`;
-		const ssePath = `/sse/${env.MCP_AUTH_TOKEN}`;
-
-		if (url.pathname === ssePath || url.pathname === `${ssePath}/message`) {
-			return YoutubeVisionMCP.serveSSE(ssePath).fetch(request, env, ctx);
+		// Header-based auth: Claude's Custom Connector UI supports request
+		// headers sent as this connector's credentials, stored securely and
+		// never shown again — a better fit than a token in the URL, since
+		// headers don't end up in browser history or referrer logs.
+		const authHeader = request.headers.get("Authorization") ?? "";
+		if (!timingSafeEqual(authHeader, `Bearer ${env.MCP_AUTH_TOKEN}`)) {
+			return new Response("Unauthorized", { status: 401 });
 		}
 
-		if (url.pathname === mcpPath) {
-			return YoutubeVisionMCP.serve(mcpPath).fetch(request, env, ctx);
+		const url = new URL(request.url);
+
+		if (url.pathname === "/sse" || url.pathname === "/sse/message") {
+			return YoutubeVisionMCP.serveSSE("/sse").fetch(request, env, ctx);
+		}
+
+		if (url.pathname === "/mcp") {
+			return YoutubeVisionMCP.serve("/mcp").fetch(request, env, ctx);
 		}
 
 		return new Response("Not found", { status: 404 });

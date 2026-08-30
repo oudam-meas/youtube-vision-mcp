@@ -34,12 +34,15 @@ dev preview, use a real Linux/macOS/WSL machine instead.
 ## Auth
 
 The Worker is otherwise open to the internet, and every call spends *your*
-Gemini quota/billing, not the caller's — so it requires a secret token
-embedded in the URL path: `/mcp/<token>` (and `/sse/<token>`). Anything
-else, including the bare `/mcp`, 404s indistinguishably from an unknown
-route. No OAuth server or header config needed — it works with any MCP
-client (like Claude's Custom Connector) that just calls a fixed URL; you
-just register the token-bearing URL once.
+Gemini quota/billing, not the caller's — so every request must carry
+`Authorization: Bearer <token>` matching the `MCP_AUTH_TOKEN` secret
+(constant-time compared). Anything missing or wrong gets a plain 401.
+
+Claude's Custom Connector UI supports request headers sent as that
+connector's credentials (stored securely, never shown again, up to four) —
+add `Authorization: Bearer <token>` there rather than putting the token in
+the URL. Headers don't end up in browser history or referrer logs the way
+a URL does.
 
 Generate a token and set it before your first deploy:
 
@@ -47,9 +50,6 @@ Generate a token and set it before your first deploy:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npm run secret:auth-token   # paste the generated value when prompted
 ```
-
-Treat the resulting connector URL (with the token in it) as a secret —
-don't paste it into a public README, issue, or gist.
 
 ## Deploy
 
@@ -68,10 +68,10 @@ that's what provisions `<your-subdomain>.workers.dev`. It's a one-time,
 account-wide step; after that, deploys just work.
 
 This publishes to `https://youtube-vision-mcp.<your-subdomain>.workers.dev`,
-with the MCP endpoint at `/mcp/<token>` (and `/sse/<token>` for SSE-based
-clients). Register that full URL, token included, as a Custom Connector in
-Claude → Settings → Connectors — no tunnel, no restart-to-get-a-new-URL
-problem.
+with the MCP endpoint at `/mcp` (and `/sse` for SSE-based clients). In
+Claude → Settings → Connectors, add it as a Custom Connector with that
+URL, then add an `Authorization` request header with value
+`Bearer <token>` — no tunnel, no restart-to-get-a-new-URL problem.
 
 **Status:** deployed and verified — a `POST /mcp` with an `initialize`
 request returns a valid MCP handshake (`serverInfo.name:
