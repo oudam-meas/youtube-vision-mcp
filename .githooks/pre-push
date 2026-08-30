@@ -1,6 +1,8 @@
-#!/usr/bin/env bash
+#!/data/data/com.termux/files/usr/bin/bash
 # Free, dependency-free secret scanner run before every `git push`.
 # Blocks the push if likely secrets are found in the outgoing commits.
+# Shebang pinned to Termux's real bash path since Termux has no /usr at
+# the filesystem root, so `#!/usr/bin/env bash` fails to exec.
 #
 # Installed via: git config core.hooksPath .githooks
 set -euo pipefail

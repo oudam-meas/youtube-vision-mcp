@@ -1,0 +1,35 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Free, dependency-free secret scanner run on the commit message itself.
+# Shebang pinned to Termux's real bash path - see .githooks/pre-commit for why.
+#
+# Installed via: git config core.hooksPath .githooks
+set -euo pipefail
+
+msg_file="$1"
+found=0
+
+patterns=(
+  'AIza[0-9A-Za-z_-]{35}'
+  'AKIA[0-9A-Z]{16}'
+  'ghp_[0-9A-Za-z]{36}'
+  'github_pat_[0-9A-Za-z_]{50,}'
+  'sk-[A-Za-z0-9]{20,}'
+  'xox[baprs]-[0-9A-Za-z-]{10,}'
+  '-----BEGIN [A-Z ]*PRIVATE KEY-----'
+)
+
+for pat in "${patterns[@]}"; do
+  hits=$(grep -E -e "$pat" "$msg_file" || true)
+  if [ -n "$hits" ]; then
+    echo "commit-msg: possible secret matching /$pat/ in commit message:" >&2
+    echo "$hits" | sed 's/^/    /' >&2
+    found=1
+  fi
+done
+
+if [ "$found" -ne 0 ]; then
+  echo "commit-msg: aborting commit. Remove the secret from the message." >&2
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,47 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Free, dependency-free secret scanner run before every `git commit`.
+# Blocks the commit if likely secrets are found in the staged changes.
+# Shebang is pinned to Termux's real bash path since Termux has no /usr
+# at the filesystem root, so `#!/usr/bin/env bash` fails to exec.
+#
+# Installed via: git config core.hooksPath .githooks
+set -euo pipefail
+
+found=0
+
+if git diff --cached --name-only | grep -qx '\.env'; then
+  echo "pre-commit: refusing to commit .env - it should stay untracked (see .gitignore)" >&2
+  found=1
+fi
+
+# Same secret-shape regexes as .githooks/pre-push and commit-msg, kept in sync.
+patterns=(
+  'AIza[0-9A-Za-z_-]{35}'
+  'AKIA[0-9A-Z]{16}'
+  'ghp_[0-9A-Za-z]{36}'
+  'github_pat_[0-9A-Za-z_]{50,}'
+  'sk-[A-Za-z0-9]{20,}'
+  'xox[baprs]-[0-9A-Za-z-]{10,}'
+  '-----BEGIN [A-Z ]*PRIVATE KEY-----'
+  '[A-Za-z0-9_-]*[Ss][Ee][Cc][Rr][Ee][Tt][A-Za-z0-9_-]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{8,}["'"'"']'
+  '[A-Za-z0-9_-]*[Aa][Pp][Ii][_-]?[Kk][Ee][Yy]["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{8,}["'"'"']'
+)
+
+diff_added=$(git diff --cached -U0 2>/dev/null | grep -E '^\+' | grep -Ev '^\+\+\+' || true)
+
+for pat in "${patterns[@]}"; do
+  hits=$(printf '%s\n' "$diff_added" | grep -E -e "$pat" || true)
+  if [ -n "$hits" ]; then
+    echo "pre-commit: possible secret matching /$pat/ in staged changes:" >&2
+    echo "$hits" | sed 's/^/    /' >&2
+    found=1
+  fi
+done
+
+if [ "$found" -ne 0 ]; then
+  echo "pre-commit: aborting commit. Remove the secret, or if this is a false positive," >&2
+  echo "commit with --no-verify." >&2
+  exit 1
+fi
+
+exit 0
