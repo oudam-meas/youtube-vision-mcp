@@ -44,11 +44,17 @@ add `Authorization: Bearer <token>` there rather than putting the token in
 the URL. Headers don't end up in browser history or referrer logs the way
 a URL does.
 
-Generate a token and set it before your first deploy:
+Cloudflare secrets are write-only — no API or dashboard view ever returns
+the value back once set — so the raw token has to live somewhere you
+control. Keep it in the same `~/.config/youtube-vision-mcp/.env` used for
+`GEMINI_API_KEY` (see `../.env.example`), not a one-off file:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-npm run secret:auth-token   # paste the generated value when prompted
+# append the output as MCP_AUTH_TOKEN=... to ~/.config/youtube-vision-mcp/.env
+
+# then set it on Cloudflare from that same file, without ever printing it:
+grep '^MCP_AUTH_TOKEN=' ~/.config/youtube-vision-mcp/.env | cut -d= -f2- | npm run secret:auth-token
 ```
 
 ## Deploy
