@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "secret:gemini": "wrangler secret put GEMINI_API_KEY",
+    "secret:auth-token": "wrangler secret put MCP_AUTH_TOKEN",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
